@@ -42,7 +42,7 @@ namespace RecipeCustomization
 
             context = this;
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
-            isDebug = Config.Bind<bool>("General", "IsDebug", true, "Enable debug logs");
+            isDebug = Config.Bind<bool>("General", "IsDebug", false, "Enable debug logs");
             nexusID = Config.Bind<int>("General", "NexusID", 1245, "Nexus mod ID for updates");
             nexusID.Value = 1245;
 

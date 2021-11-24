@@ -38,7 +38,7 @@ namespace BuildPieceTweaks
 
             context = this;
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
-            isDebug = Config.Bind<bool>("General", "IsDebug", true, "Enable debug logs");
+            isDebug = Config.Bind<bool>("General", "IsDebug", false, "Enable debug logs");
             nexusID = Config.Bind<int>("General", "NexusID", 1201, "Nexus mod ID for updates");
 
             globalPieceClipEverything = Config.Bind<bool>("Global", "GlobalPieceClipEverything", false, "Global piece clip everything.");

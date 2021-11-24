@@ -39,7 +39,7 @@ namespace CustomWeaponStats
 
             context = this;
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
-            isDebug = Config.Bind<bool>("General", "IsDebug", true, "Enable debug logs");
+            isDebug = Config.Bind<bool>("General", "IsDebug", false, "Enable debug logs");
             nexusID = Config.Bind<int>("General", "NexusID", 1151, "Nexus mod ID for updates");
 
             globalDamageMultiplier = Config.Bind<float>("Global", "GlobalDamageMultiplier", 1f, "Global damage multiplier for all weapons");

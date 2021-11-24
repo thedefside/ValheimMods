@@ -20,7 +20,7 @@ namespace CustomTextures
         public static ConfigEntry<string> hotKey;
         public static ConfigEntry<int> nexusID;
 
-        private static readonly bool isDebug = true;
+        private static ConfigEntry<bool> isDebug;
         private static BepInExPlugin context;
         private static Stopwatch stopwatch = new Stopwatch();
 
@@ -35,13 +35,14 @@ namespace CustomTextures
 
         public static void Dbgl(string str = "", bool pref = true)
         {
-            if (isDebug)
+            if (isDebug.Value)
                 Debug.Log((pref ? typeof(BepInExPlugin).Namespace + " " : "") + str);
         }
         private void Awake()
         {
             context = this;
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
+            isDebug = Config.Bind<bool>("General", "IsDebug", false, "Enable debug");
             hotKey = Config.Bind<string>("General", "HotKey", "page down", "Key to reload textures");
             replaceLocationTextures = Config.Bind<bool>("General", "ReplaceLocationTextures", true, "Replace textures for special locations (can take a long time)");
             dumpSceneTextures = Config.Bind<bool>("General", "DumpSceneTextures", false, "Dump scene textures to BepInEx/plugins/CustomTextures/scene_dump.txt");

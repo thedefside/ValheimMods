@@ -35,7 +35,7 @@ namespace TerrainReset
             
             context = this;
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
-            isDebug = Config.Bind<bool>("General", "IsDebug", true, "Enable debug logs");
+            isDebug = Config.Bind<bool>("General", "IsDebug", false, "Enable debug logs");
             nexusID = Config.Bind<int>("General", "NexusID", 1113, "Nexus mod ID for updates");
             hotKeyRadius = Config.Bind<float>("Config", "HotKeyRadius", 150f, "Reset radius for hotkey command");
             toolRadius = Config.Bind<float>("Config", "ToolRadius", 0, "Reset radius for tool. Set to 0 to use the tool's actual radius.");
