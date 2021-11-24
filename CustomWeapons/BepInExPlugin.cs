@@ -50,7 +50,7 @@ namespace CustomWeaponStats
             globalHoldStaminaDrainMultiplier = Config.Bind<float>("Global", "GlobalHoldStaminaDrainMultiplier", 1f, "Global hold stamina drain multiplier for all weapons");
             globalAttackStaminaUseMultiplier = Config.Bind<float>("Global", "GlobalAttackStaminaUseMultiplier", 1f, "Global attack stamina use multiplier for all weapons");
 
-            assetPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "CustomWeaponStats");
+            assetPath = Path.Combine(Paths.ConfigPath, typeof(BepInExPlugin).Namespace);
 
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
         }

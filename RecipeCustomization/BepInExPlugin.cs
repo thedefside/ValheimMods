@@ -46,7 +46,7 @@ namespace RecipeCustomization
             nexusID = Config.Bind<int>("General", "NexusID", 1245, "Nexus mod ID for updates");
             nexusID.Value = 1245;
 
-            assetPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), typeof(BepInExPlugin).Namespace);
+            assetPath = Path.Combine(Paths.ConfigPath, typeof(BepInExPlugin).Namespace);
 
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
         }

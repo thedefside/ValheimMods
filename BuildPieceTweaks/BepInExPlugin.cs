@@ -46,7 +46,7 @@ namespace BuildPieceTweaks
             globalRepairPiece = Config.Bind<bool>("Global", "GlobalRepairPiece", false, "Global repair piece.");
             globalCanBeRemoved = Config.Bind<bool>("Global", "GlobalCanBeRemoved", false, "Global can be removed.");
 
-            assetPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), typeof(BepInExPlugin).Namespace);
+            assetPath = Path.Combine(Paths.ConfigPath, typeof(BepInExPlugin).Namespace);
 
             pieceDatas = GetDataFromFiles();
 

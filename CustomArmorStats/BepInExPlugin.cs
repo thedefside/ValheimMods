@@ -53,7 +53,7 @@ namespace CustomArmorStats
 
             waterModifierName = Config.Bind<string>("Strings", "WaterModifierName", "Water", "Name of water damage modifier to show in tooltip");
 
-            assetPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "CustomArmorStats");
+            assetPath = Path.Combine(Paths.ConfigPath, typeof(BepInExPlugin).Namespace);
 
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
         }
