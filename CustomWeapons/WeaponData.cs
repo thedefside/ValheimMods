@@ -14,7 +14,8 @@
         public int toolTier;
         public string ammoType;
         public string statusEffect;
-        
+        public float movementModifier;
+
         public float backStabBonus;
         public float blockPower;
         public float deflectionForce;

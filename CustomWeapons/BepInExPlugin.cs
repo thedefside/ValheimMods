@@ -258,6 +258,7 @@ namespace CustomWeaponStats
             item.m_shared.m_blockPowerPerLevel = weapon.blockPowerPerLevel;
             item.m_shared.m_deflectionForce = weapon.deflectionForce;
             item.m_shared.m_deflectionForcePerLevel = weapon.deflectionForcePerLevel;
+            item.m_shared.m_movementModifier = weapon.movementModifier;
 
             item.m_shared.m_damages.m_damage = weapon.damage;
             item.m_shared.m_damages.m_blunt = weapon.blunt;
@@ -323,6 +324,7 @@ namespace CustomWeaponStats
                 blockPowerPerLevel = item.m_shared.m_blockPowerPerLevel,
                 deflectionForce = item.m_shared.m_deflectionForce,
                 deflectionForcePerLevel = item.m_shared.m_deflectionForcePerLevel,
+                movementModifier = item.m_shared.m_movementModifier,
 
                 damage = item.m_shared.m_damages.m_damage,
                 blunt = item.m_shared.m_damages.m_blunt,
