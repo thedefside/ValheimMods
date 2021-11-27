@@ -168,13 +168,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ControllerButtonSwitch", "C
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServerRewards", "ServerRewards\ServerRewards.csproj", "{9A3F6016-5760-4975-8217-5731AC5E8AB4}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CustomWeaponStats", "CustomWeapons\CustomWeaponStats.csproj", "{0EFD1FBE-B627-4680-9A66-B95AA347EB48}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WeaponCustomizer", "CustomWeapons\WeaponCustomizer.csproj", "{0EFD1FBE-B627-4680-9A66-B95AA347EB48}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CustomArmorStats", "CustomArmorStats\CustomArmorStats.csproj", "{765DCF89-5FB5-4508-AB77-112EE42C7038}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HoeRadius", "HoeRadius\HoeRadius.csproj", "{F548BD14-E8AA-4223-B6E1-4307267A8D8F}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BuildPieceTweaks", "BuildPieceTweaks\BuildPieceTweaks.csproj", "{C895D63B-7C0B-4C7E-BF79-E95B4DEED088}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BuildPieceCustomizer", "BuildPieceTweaks\BuildPieceCustomizer.csproj", "{C895D63B-7C0B-4C7E-BF79-E95B4DEED088}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CraftingFilter", "CraftingFilter\CraftingFilter.csproj", "{94812B4A-CEFA-453C-BFF1-31C702D17C8B}"
 EndProject
@@ -182,7 +182,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DamageMod", "DamageMod\Dama
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BuildPieceReplace", "BuildPieceReplace\BuildPieceReplace.csproj", "{DA3D9481-22D5-427A-9ECB-F60644FCAB78}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RecipeCustomization", "RecipeCustomization\RecipeCustomization.csproj", "{FD5B3515-66D6-4724-99D2-805B8D35966C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RecipeCustomizer", "RecipeCustomization\RecipeCustomizer.csproj", "{FD5B3515-66D6-4724-99D2-805B8D35966C}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RepeatActions", "RepeatActions\RepeatActions.csproj", "{27964F69-935D-4366-9B2B-0632189C2B20}"
 EndProject

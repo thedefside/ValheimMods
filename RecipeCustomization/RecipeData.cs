@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace RecipeCustomization
+namespace RecipeCustomizer
 {
     internal class RecipeData
     {

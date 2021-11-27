@@ -1,4 +1,4 @@
-﻿namespace CustomWeaponStats
+﻿namespace WeaponCustomizer
 {
     public class WeaponState : ItemDrop.ItemData.SharedData
     {

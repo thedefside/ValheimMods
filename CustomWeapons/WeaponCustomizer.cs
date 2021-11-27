@@ -1,5 +1,6 @@
 ﻿using BepInEx;
 using BepInEx.Configuration;
+using BepInEx.Logging;
 using HarmonyLib;
 using System;
 using System.Collections.Generic;
@@ -8,16 +9,16 @@ using System.Linq;
 using System.Reflection;
 using UnityEngine;
 
-namespace CustomWeaponStats
+namespace WeaponCustomizer
 {
-    [BepInPlugin("aedenthorn.CustomWeaponStats", "Custom Weapon Stats", "0.6.1")]
-    public partial class BepInExPlugin : BaseUnityPlugin
+    [BepInPlugin("thedefside.WeaponCustomizer", "Weapon Customizer", "0.0.1")]
+    public partial class WeaponCustomizer : BaseUnityPlugin
     {
-        private static BepInExPlugin context;
+        private static WeaponCustomizer context;
+        public static ManualLogSource log;
+        internal const string CommandName = "wc";
 
         public static ConfigEntry<bool> modEnabled;
-        public static ConfigEntry<bool> isDebug;
-        public static ConfigEntry<int> nexusID;
 
         public static ConfigEntry<float> globalDamageMultiplier;
         public static ConfigEntry<float> globalUseDurabilityMultiplier;
@@ -29,18 +30,11 @@ namespace CustomWeaponStats
         private static List<WeaponData> weaponDatas;
         private static string assetPath;
 
-        public static void Dbgl(string str = "", bool pref = true)
-        {
-            if (isDebug.Value)
-                Debug.Log((pref ? typeof(BepInExPlugin).Namespace + " " : "") + str);
-        }
         private void Awake()
         {
-
+            log = Logger;
             context = this;
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
-            isDebug = Config.Bind<bool>("General", "IsDebug", false, "Enable debug logs");
-            nexusID = Config.Bind<int>("General", "NexusID", 1151, "Nexus mod ID for updates");
 
             globalDamageMultiplier = Config.Bind<float>("Global", "GlobalDamageMultiplier", 1f, "Global damage multiplier for all weapons");
             globalUseDurabilityMultiplier = Config.Bind<float>("Global", "GlobalUseDurabilityMultiplier", 1f, "Global use durability multiplier for all weapons");
@@ -50,7 +44,7 @@ namespace CustomWeaponStats
             globalHoldStaminaDrainMultiplier = Config.Bind<float>("Global", "GlobalHoldStaminaDrainMultiplier", 1f, "Global hold stamina drain multiplier for all weapons");
             globalAttackStaminaUseMultiplier = Config.Bind<float>("Global", "GlobalAttackStaminaUseMultiplier", 1f, "Global attack stamina use multiplier for all weapons");
 
-            assetPath = Path.Combine(Paths.ConfigPath, typeof(BepInExPlugin).Namespace);
+            assetPath = Path.Combine(Paths.ConfigPath, typeof(WeaponCustomizer).Namespace);
 
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
         }
@@ -122,7 +116,7 @@ namespace CustomWeaponStats
 
                 CheckWeaponData(ref weapon);
 
-                Dbgl($"pre damage {weapon.m_shared.m_damages.m_slash}");
+                log.LogDebug($"pre damage {weapon.m_shared.m_damages.m_slash}");
 
                 __state = new WeaponState(weapon);
 
@@ -143,7 +137,7 @@ namespace CustomWeaponStats
                 weapon.m_shared.m_damages.m_poison *= globalDamageMultiplier.Value;
                 weapon.m_shared.m_damages.m_spirit *= globalDamageMultiplier.Value;
 
-                Dbgl($"post damage {weapon.m_shared.m_damages.m_slash}");
+                log.LogDebug($"post damage {weapon.m_shared.m_damages.m_slash}");
             }
             static void Postfix(ref ItemDrop.ItemData weapon, WeaponState __state)
             {
@@ -217,7 +211,6 @@ namespace CustomWeaponStats
                 var name = instance.m_dropPrefab.name;
                 var weapon = weaponDatas.First(d => d.name == name);
                 SetWeaponData(ref instance, weapon);
-                //Dbgl($"Set weapon data for {instance.name}");
             }
             catch
             {
@@ -228,7 +221,7 @@ namespace CustomWeaponStats
 
         private static List<WeaponData> GetWeaponDataFromFiles()
         {
-
+            log.LogInfo("Attempting to load weapon data from files...");
             CheckModFolder();
 
             List<WeaponData> weaponDatas = new List<WeaponData>();
@@ -238,10 +231,12 @@ namespace CustomWeaponStats
                 WeaponData data = JsonUtility.FromJson<WeaponData>(File.ReadAllText(file));
                 weaponDatas.Add(data);
             }
+            log.LogInfo($"Loaded {weaponDatas.Count} weapon files.");
             return weaponDatas;
         }
         private static void SetWeaponData(ref ItemDrop.ItemData item, WeaponData weapon)
         {
+            log.LogDebug($"Setting weapon data for {weapon.name}");
             item.m_shared.m_ammoType = weapon.ammoType;
             item.m_shared.m_useDurability = weapon.useDurability;
             item.m_shared.m_useDurabilityDrain = weapon.useDurabilityDrain;
@@ -285,7 +280,6 @@ namespace CustomWeaponStats
             item.m_shared.m_damagesPerLevel.m_spirit = weapon.spiritPerLevel;
 
             item.m_shared.m_attackStatusEffect = ObjectDB.instance.GetStatusEffect(weapon.statusEffect);
-            //Dbgl($"Set weapon data for {weapon.name}");
         }
 
         private static WeaponData GetWeaponDataByName(string weapon)
@@ -293,7 +287,7 @@ namespace CustomWeaponStats
             GameObject go = ObjectDB.instance.GetItemPrefab(weapon);
             if (!go)
             {
-                Dbgl("Weapon not found!");
+                log.LogInfo($"Weapon <{weapon}> not found!");
                 return null;
             }
 
@@ -357,7 +351,7 @@ namespace CustomWeaponStats
         {
             if (!Directory.Exists(assetPath))
             {
-                Dbgl("Creating mod folder");
+                log.LogInfo($"Creating mod folder at <{assetPath}>");
                 Directory.CreateDirectory(assetPath);
             }
         }
@@ -370,7 +364,7 @@ namespace CustomWeaponStats
                 if (!modEnabled.Value)
                     return true;
                 string text = __instance.m_input.text;
-                if (text.ToLower().Equals($"{typeof(BepInExPlugin).Namespace.ToLower()} reset"))
+                if (text.ToLower().Equals($"{CommandName} reset"))
                 {
                     context.Config.Reload();
                     context.Config.Save();
@@ -378,7 +372,7 @@ namespace CustomWeaponStats
                     Traverse.Create(__instance).Method("AddString", new object[] { $"{context.Info.Metadata.Name} config reloaded" }).GetValue();
                     return false;
                 }
-                if (text.ToLower().Equals($"{typeof(BepInExPlugin).Namespace.ToLower()} reload"))
+                if (text.ToLower().Equals($"{CommandName} reload"))
                 {
                     weaponDatas = GetWeaponDataFromFiles();
                     LoadAllWeaponData(true);
@@ -386,19 +380,19 @@ namespace CustomWeaponStats
                     Traverse.Create(__instance).Method("AddString", new object[] { $"{context.Info.Metadata.Name} reloaded weapon stats from files" }).GetValue();
                     return false;
                 }
-                if (text.ToLower().StartsWith($"{typeof(BepInExPlugin).Namespace.ToLower()} dump "))
+                if (text.ToLower().StartsWith($"{CommandName} dump "))
                 {
                     var t = text.Split(' ');
                     string weapon = t[t.Length - 1];
                     WeaponData weaponData = GetWeaponDataByName(weapon);
                     if (weaponData == null)
                         return false;
-                    Dbgl(JsonUtility.ToJson(weaponData));
+                    log.LogDebug($"Weapon data = {JsonUtility.ToJson(weaponData)}");
                     Traverse.Create(__instance).Method("AddString", new object[] { text }).GetValue();
                     Traverse.Create(__instance).Method("AddString", new object[] { $"{context.Info.Metadata.Name} dumped {weapon}" }).GetValue();
                     return false;
                 }
-                if (text.ToLower().Equals($"{typeof(BepInExPlugin).Namespace.ToLower()} skills"))
+                if (text.ToLower().Equals($"{CommandName} skills"))
                 {
                     Traverse.Create(__instance).Method("AddString", new object[] { text }).GetValue();
                     
@@ -407,21 +401,21 @@ namespace CustomWeaponStats
                     {
                         output.Add(Enum.GetName(typeof(Skills.SkillType), type) + " " + (int)type);
                     }
-                    Dbgl(string.Join("\r\n", output));
+                    log.LogDebug(string.Join("\r\n", output));
 
                     Traverse.Create(__instance).Method("AddString", new object[] { $"{context.Info.Metadata.Name} dumped skill types" }).GetValue();
                     return false;
                 }
-                if (text.ToLower().Equals($"{typeof(BepInExPlugin).Namespace.ToLower()} se"))
+                if (text.ToLower().Equals($"{CommandName} se"))
                 {
                     Traverse.Create(__instance).Method("AddString", new object[] { text }).GetValue();
                     
-                    Dbgl(string.Join("\r\n", ObjectDB.instance.m_StatusEffects.Select(se => se.name)));
+                    log.LogDebug(string.Join("\r\n", ObjectDB.instance.m_StatusEffects.Select(se => se.name)));
 
                     Traverse.Create(__instance).Method("AddString", new object[] { $"{context.Info.Metadata.Name} dumped status effects" }).GetValue();
                     return false;
                 }
-                if (text.ToLower().StartsWith($"{typeof(BepInExPlugin).Namespace.ToLower()} save "))
+                if (text.ToLower().StartsWith($"{CommandName} save "))
                 {
                     var t = text.Split(' ');
                     string weapon = t[t.Length - 1];
@@ -434,7 +428,7 @@ namespace CustomWeaponStats
                     Traverse.Create(__instance).Method("AddString", new object[] { $"{context.Info.Metadata.Name} saved weapon data to {weapon}.json" }).GetValue();
                     return false;
                 }
-                if (text.ToLower().StartsWith($"{typeof(BepInExPlugin).Namespace.ToLower()}"))
+                if (text.ToLower().StartsWith($"{CommandName}"))
                 {
                     string output = $"{context.Info.Metadata.Name} reset\r\n"
                     + $"{context.Info.Metadata.Name} reload\r\n"

@@ -1,6 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <Version>1.0.0</Version>
+    <AssemblyName>WeaponCustomizer</AssemblyName>
+    <RootNamespace>WeaponCustomizer</RootNamespace>
   </PropertyGroup>
   <Import Project="$(SolutionDir)\valheim.targets" />
 </Project>

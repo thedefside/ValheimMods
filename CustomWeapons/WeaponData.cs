@@ -1,4 +1,4 @@
-﻿namespace CustomWeaponStats
+﻿namespace WeaponCustomizer
 {
     internal class WeaponData
     {

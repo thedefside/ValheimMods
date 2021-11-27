@@ -340,3 +340,9 @@ ASALocalRun/
 
 # BeatPulse healthcheck temp database
 healthchecksdb
+/CustomWeapons/Package/WeaponCustomizer.dll
+/CustomWeapons/Package/WeaponCustomizer.zip
+/RecipeCustomization/Package/RecipeCustomizer.dll
+/BuildPieceTweaks/Package/BuildPieceCustomizer.dll
+/BuildPieceTweaks/Package/BuildPieceCustomizer.zip
+/BuildPieceTweaks/Package/Package.zip

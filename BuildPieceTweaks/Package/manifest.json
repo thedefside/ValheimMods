@@ -1,0 +1,9 @@
+{
+  "name": "BuildPieceCustomizer",
+  "version_number": "0.0.1",
+  "website_url": "https://github.com/thedefside/ValheimMods/tree/master/BuildPieceTweaks",
+  "description": "A fork of Aedenthorn's Build Piece Tweaks mod that is updated to provide TS compatibity.",
+  "dependencies": [
+    "denikson-BepInExPack_Valheim-5.4.1601"
+  ]
+}

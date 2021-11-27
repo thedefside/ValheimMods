@@ -1,6 +1,7 @@
 ﻿using BepInEx;
 using BepInEx.Bootstrap;
 using BepInEx.Configuration;
+using BepInEx.Logging;
 using HarmonyLib;
 using System.Collections;
 using System.Collections.Generic;
@@ -8,16 +9,16 @@ using System.IO;
 using System.Reflection;
 using UnityEngine;
 
-namespace RecipeCustomization
+namespace RecipeCustomizer
 {
-    [BepInPlugin("aedenthorn.RecipeCustomization", "Recipe Customization", "0.5.1")]
-    public partial class BepInExPlugin : BaseUnityPlugin
+    [BepInPlugin("thedefside.RecipeCustomizer", "Recipe Customizer", "0.0.1")]
+    public partial class RecipeCustomizer : BaseUnityPlugin
     {
-        private static BepInExPlugin context;
+        private static RecipeCustomizer context;
+        internal static ManualLogSource log;
+        internal const string CommandName = "rc";
 
         public static ConfigEntry<bool> modEnabled;
-        public static ConfigEntry<bool> isDebug;
-        public static ConfigEntry<int> nexusID;
         
         public static ConfigEntry<float> globalArmorDurabilityLossMult;
         public static ConfigEntry<float> globalArmorMovementModMult;
@@ -32,21 +33,14 @@ namespace RecipeCustomization
             Water = 1024
         }
 
-        public static void Dbgl(string str = "", bool pref = true)
-        {
-            if (isDebug.Value)
-                Debug.Log((pref ? typeof(BepInExPlugin).Namespace + " " : "") + str);
-        }
         private void Awake()
         {
 
             context = this;
+            log = Logger;
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
-            isDebug = Config.Bind<bool>("General", "IsDebug", false, "Enable debug logs");
-            nexusID = Config.Bind<int>("General", "NexusID", 1245, "Nexus mod ID for updates");
-            nexusID.Value = 1245;
 
-            assetPath = Path.Combine(Paths.ConfigPath, typeof(BepInExPlugin).Namespace);
+            assetPath = Path.Combine(Paths.ConfigPath, typeof(RecipeCustomizer).Namespace);
 
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
         }
@@ -60,7 +54,6 @@ namespace RecipeCustomization
                 if (!modEnabled.Value)
                     return;
                 context.StartCoroutine(DelayedLoadRecipes());
-                //LoadAllRecipeData(true);
             }
         }
         public static IEnumerator DelayedLoadRecipes()
@@ -97,7 +90,7 @@ namespace RecipeCustomization
         {
             if (!Directory.Exists(assetPath))
             {
-                Dbgl("Creating mod folder");
+                log.LogInfo($"Creating mod folder at <{assetPath}>");
                 Directory.CreateDirectory(assetPath);
             }
         }
@@ -112,7 +105,7 @@ namespace RecipeCustomization
             }
             if (go.GetComponent<ItemDrop>() == null)
             {
-                Dbgl($"Item data for {data.name} not found!");
+                log.LogWarning($"Item data for {data.name} not found!");
                 return;
             }
 
@@ -122,7 +115,7 @@ namespace RecipeCustomization
                 {
                     if (data.disabled)
                     {
-                        Dbgl($"Removing recipe for {data.name} from the game");
+                        log.LogDebug($"Removing recipe for {data.name} from the game");
                         ObjectDB.instance.m_recipes.RemoveAt(i);
                         return;
                     }
@@ -147,18 +140,18 @@ namespace RecipeCustomization
             GameObject go = GetPieces().Find(g => Utils.GetPrefabName(g) == data.name);
             if (go == null)
             {
-                Dbgl($"Item {data.name} not found!");
+                log.LogWarning($"Item {data.name} not found!");
                 return;
             }
             if (go.GetComponent<Piece>() == null)
             {
-                Dbgl($"Item data for {data.name} not found!");
+                log.LogWarning($"Item data for {data.name} not found!");
                 return;
             }
 
             if (data.disabled)
             {
-                Dbgl($"Removing recipe for {data.name} from the game");
+                log.LogDebug($"Removing recipe for {data.name} from the game");
 
                 ItemDrop hammer = ObjectDB.instance.GetItemPrefab("Hammer")?.GetComponent<ItemDrop>();
                 if (hammer && hammer.m_itemData.m_shared.m_buildPieces.m_pieces.Contains(go))
@@ -189,13 +182,13 @@ namespace RecipeCustomization
             if (name == "" || name == null)
                 return null;
 
-            Dbgl("Looking for crafting station " + name);
+            log.LogDebug("Looking for crafting station " + name);
 
             foreach (Recipe recipe in ObjectDB.instance.m_recipes)
             {
                 if (recipe?.m_craftingStation?.m_name == name)
                 {
-                    Dbgl("got crafting station " + name);
+                    log.LogDebug("got crafting station " + name);
                     return recipe.m_craftingStation;
                 }
             }
@@ -203,7 +196,7 @@ namespace RecipeCustomization
             {
                 if (piece.GetComponent<Piece>()?.m_craftingStation?.m_name == name)
                 {
-                    Dbgl("got crafting station " + name);
+                    log.LogDebug("got crafting station " + name);
                     return piece.GetComponent<Piece>().m_craftingStation;
                 }
             }
@@ -239,7 +232,7 @@ namespace RecipeCustomization
             ItemDrop.ItemData item = go.GetComponent<ItemDrop>().m_itemData;
             if(item == null)
             {
-                Dbgl("Item data not found!");
+                log.LogWarning($"Item data not found for {name}!");
                 return null;
             }
             Recipe recipe = ObjectDB.instance.GetRecipe(item);
@@ -252,13 +245,13 @@ namespace RecipeCustomization
                     if (cr != null)
                     {
                         recipe = (Recipe)AccessTools.Property(cr.GetType(), "Recipe").GetValue(cr);
-                        Dbgl($"Jotunn recipe: {item.m_shared.m_name} {recipe != null}");
+                        log.LogDebug($"Jotunn recipe: {item.m_shared.m_name} not null = {recipe != null}");
                     }
                 }
 
                 if (!recipe) 
                 { 
-                    Dbgl($"Recipe not found for item {item.m_shared.m_name}!");
+                    log.LogWarning($"Recipe not found for item {item.m_shared.m_name}!");
                     return null;
                 }
             }
@@ -283,13 +276,13 @@ namespace RecipeCustomization
             GameObject go = GetPieces().Find(g => Utils.GetPrefabName(g) == name);
             if (go == null)
             {
-                Dbgl($"Item {name} not found!");
+                log.LogWarning($"Item {name} not found!");
                 return null;
             }
             Piece piece = go.GetComponent<Piece>();
             if (piece == null)
             {
-                Dbgl("Item data not found!");
+                log.LogWarning($"Item data not found for {name}!");
                 return null;
             }
             var data = new RecipeData()
@@ -316,7 +309,7 @@ namespace RecipeCustomization
                     return true;
 
                 string text = __instance.m_input.text;
-                if (text.ToLower().Equals($"{typeof(BepInExPlugin).Namespace.ToLower()} reset"))
+                if (text.ToLower().Equals($"{CommandName} reset"))
                 {
                     context.Config.Reload();
                     context.Config.Save();
@@ -324,7 +317,7 @@ namespace RecipeCustomization
                     AccessTools.Method(typeof(Terminal), "AddString").Invoke(__instance, new object[] { $"{context.Info.Metadata.Name} config reloaded" });
                     return false;
                 }
-                else if (text.ToLower().Equals($"{typeof(BepInExPlugin).Namespace.ToLower()} reload"))
+                else if (text.ToLower().Equals($"{CommandName} reload"))
                 {
                     GetRecipeDataFromFiles();
                     AccessTools.Method(typeof(Terminal), "AddString").Invoke(__instance, new object[] { text });
@@ -339,7 +332,7 @@ namespace RecipeCustomization
                     }
                     return false;
                 }
-                else if (text.ToLower().StartsWith($"{typeof(BepInExPlugin).Namespace.ToLower()} save "))
+                else if (text.ToLower().StartsWith($"{CommandName} save "))
                 {
                     var t = text.Split(' ');
                     string file = t[t.Length - 1];
@@ -352,19 +345,19 @@ namespace RecipeCustomization
                     AccessTools.Method(typeof(Terminal), "AddString").Invoke(__instance, new object[] { $"{context.Info.Metadata.Name} saved recipe data to {file}.json" });
                     return false;
                 }
-                else if (text.ToLower().StartsWith($"{typeof(BepInExPlugin).Namespace.ToLower()} dump "))
+                else if (text.ToLower().StartsWith($"{CommandName} dump "))
                 {
                     var t = text.Split(' ');
                     string recipe = t[t.Length - 1];
                     RecipeData recipeData = GetRecipeDataByName(recipe);
                     if (recipeData == null)
                         return false;
-                    Dbgl(JsonUtility.ToJson(recipeData));
+                    log.LogDebug($"Recipe data: {JsonUtility.ToJson(recipeData)}");
                     AccessTools.Method(typeof(Terminal), "AddString").Invoke(__instance, new object[] { text });
                     AccessTools.Method(typeof(Terminal), "AddString").Invoke(__instance, new object[] { $"{context.Info.Metadata.Name} dumped {recipe}" });
                     return false;
                 }
-                else if (text.ToLower().StartsWith($"{typeof(BepInExPlugin).Namespace.ToLower()}"))
+                else if (text.ToLower().StartsWith($"{CommandName}"))
                 {
                     string output = $"{context.Info.Metadata.Name} reset\r\n"
                     + $"{context.Info.Metadata.Name} reload\r\n"

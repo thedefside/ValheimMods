@@ -1,0 +1,9 @@
+{
+  "name": "RecipeCustomizer",
+  "version_number": "0.0.1",
+  "website_url": "https://github.com/thedefside/ValheimMods/tree/master/RecipeCustomization",
+  "description": "A fork of Aedenthorn's Recipe Customization mod that is updated to provide TS compatibity.",
+  "dependencies": [
+    "denikson-BepInExPack_Valheim-5.4.1601"
+  ]
+}

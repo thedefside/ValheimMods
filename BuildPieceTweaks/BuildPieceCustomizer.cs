@@ -1,24 +1,24 @@
 ﻿using BepInEx;
 using BepInEx.Configuration;
+using BepInEx.Logging;
 using HarmonyLib;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Threading.Tasks;
 using UnityEngine;
 
-namespace BuildPieceTweaks
+namespace BuildPieceCustomizer
 {
-    [BepInPlugin("aedenthorn.BuildPieceTweaks", "Build Piece Tweaks", "0.3.0")]
-    public partial class BepInExPlugin : BaseUnityPlugin
+    [BepInPlugin("thedefside.BuildPieceCustomizer", "Build Piece Customizer", "0.0.1")]
+    public partial class BuildPieceCustomizer : BaseUnityPlugin
     {
-        private static BepInExPlugin context;
+        private static BuildPieceCustomizer context;
+        internal static ManualLogSource log;
+        internal const string CommandName = "bpc";
 
         public static ConfigEntry<bool> modEnabled;
-        public static ConfigEntry<bool> isDebug;
-        public static ConfigEntry<int> nexusID;
         
         public static ConfigEntry<bool> globalPieceClipEverything;
         public static ConfigEntry<bool> globalAllowedInDungeons;
@@ -28,25 +28,19 @@ namespace BuildPieceTweaks
         private static Dictionary<string, PieceData> pieceDatas;
         private static string assetPath;
 
-        public static void Dbgl(string str = "", bool pref = true)
-        {
-            if (isDebug.Value)
-                Debug.Log((pref ? typeof(BepInExPlugin).Namespace + " " : "") + str);
-        }
         private void Awake()
         {
 
             context = this;
+            log = Logger;
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
-            isDebug = Config.Bind<bool>("General", "IsDebug", false, "Enable debug logs");
-            nexusID = Config.Bind<int>("General", "NexusID", 1201, "Nexus mod ID for updates");
 
             globalPieceClipEverything = Config.Bind<bool>("Global", "GlobalPieceClipEverything", false, "Global piece clip everything.");
             globalAllowedInDungeons = Config.Bind<bool>("Global", "GlobalAllowedInDungeons", false, "Global allowed in dungeons.");
             globalRepairPiece = Config.Bind<bool>("Global", "GlobalRepairPiece", false, "Global repair piece.");
             globalCanBeRemoved = Config.Bind<bool>("Global", "GlobalCanBeRemoved", false, "Global can be removed.");
 
-            assetPath = Path.Combine(Paths.ConfigPath, typeof(BepInExPlugin).Namespace);
+            assetPath = Path.Combine(Paths.ConfigPath, typeof(BuildPieceCustomizer).Namespace);
 
             pieceDatas = GetDataFromFiles();
 
@@ -107,7 +101,7 @@ namespace BuildPieceTweaks
             string name = Utils.GetPrefabName(piece.gameObject);
             if (pieceDatas.ContainsKey(name))
             {
-                Dbgl($"loading data for {name}");
+                log.LogDebug($"loading data for {name}");
                 PieceData data = pieceDatas[name];
                 piece.m_category = data.category;
                 piece.m_comfortGroup = data.comfortGroup;
@@ -206,7 +200,7 @@ namespace BuildPieceTweaks
             {
                 if(recipe?.m_craftingStation?.m_name == name)
                 {
-                    Dbgl("got crafting station "+name);
+                    log.LogDebug("got crafting station "+name);
                     return recipe.m_craftingStation;
                 }
             }
@@ -231,7 +225,7 @@ namespace BuildPieceTweaks
         {
             if (!Directory.Exists(assetPath))
             {
-                Dbgl("Creating mod folder");
+                log.LogInfo("$Creating mod folder at {assetPath}");
                 Directory.CreateDirectory(assetPath);
             }
         }
@@ -265,7 +259,7 @@ namespace BuildPieceTweaks
             if(go != null)
                 return GetDataFromItem(go, pieceName);
 
-            Dbgl($"Game object {pieceName} not found!");
+            log.LogWarning($"Game object {pieceName} not found!");
             return null;
         }
 
@@ -343,7 +337,7 @@ namespace BuildPieceTweaks
                     return true;
 
                 string text = __instance.m_input.text;
-                if (text.ToLower().Equals($"{typeof(BepInExPlugin).Namespace.ToLower()} reset"))
+                if (text.ToLower().Equals($"{CommandName} reset"))
                 {
                     context.Config.Reload();
                     context.Config.Save();
@@ -351,7 +345,7 @@ namespace BuildPieceTweaks
                     Traverse.Create(__instance).Method("AddString", new object[] { $"{context.Info.Metadata.Name} config reloaded" }).GetValue();
                     return false;
                 }
-                else if (text.ToLower().Equals($"{typeof(BepInExPlugin).Namespace.ToLower()} reload"))
+                else if (text.ToLower().Equals($"{CommandName} reload"))
                 {
                     pieceDatas = GetDataFromFiles();
                     SetCustomPieces();
@@ -359,15 +353,15 @@ namespace BuildPieceTweaks
                     Traverse.Create(__instance).Method("AddString", new object[] { $"{context.Info.Metadata.Name} reloaded piece variables from files" }).GetValue();
                     return false;
                 }
-                else if (text.ToLower().Equals($"{typeof(BepInExPlugin).Namespace.ToLower()} pieces"))
+                else if (text.ToLower().Equals($"{CommandName} pieces"))
                 {
                     Traverse.Create(__instance).Method("AddString", new object[] { text }).GetValue();
                     var pieces = GetPieces();
-                    Dbgl("Available Pieces:\n"+string.Join("\n", pieces.Select(p => p.name)));
+                    log.LogDebug("Available Pieces:\n"+string.Join("\n", pieces.Select(p => p.name)));
                     Traverse.Create(__instance).Method("AddString", new object[] { $"{context.Info.Metadata.Name} reloaded piece variables from files" }).GetValue();
                     return false;
                 }
-                else if (text.ToLower().Equals($"{typeof(BepInExPlugin).Namespace.ToLower()} comfort"))
+                else if (text.ToLower().Equals($"{CommandName} comfort"))
                 {
                     Traverse.Create(__instance).Method("AddString", new object[] { text }).GetValue();
 
@@ -376,12 +370,12 @@ namespace BuildPieceTweaks
                     {
                         output.Add(Enum.GetName(typeof(Piece.ComfortGroup), type) + " " + (int)type);
                     }
-                    Dbgl("\r\n"+string.Join("\r\n", output));
+                    log.LogDebug("\r\n"+string.Join("\r\n", output));
 
                     Traverse.Create(__instance).Method("AddString", new object[] { $"{context.Info.Metadata.Name} dumped comfort groups" }).GetValue();
                     return false;
                 }
-                else if (text.ToLower().Equals($"{typeof(BepInExPlugin).Namespace.ToLower()} cats"))
+                else if (text.ToLower().Equals($"{CommandName} cats"))
                 {
                     Traverse.Create(__instance).Method("AddString", new object[] { text }).GetValue();
 
@@ -390,12 +384,12 @@ namespace BuildPieceTweaks
                     {
                         output.Add(Enum.GetName(typeof(Piece.PieceCategory), type) + " " + (int)type);
                     }
-                    Dbgl("\r\n" + string.Join("\r\n", output));
+                    log.LogDebug("\r\n" + string.Join("\r\n", output));
 
                     Traverse.Create(__instance).Method("AddString", new object[] { $"{context.Info.Metadata.Name} dumped piece categories" }).GetValue();
                     return false;
                 }
-                else if (text.ToLower().Equals($"{typeof(BepInExPlugin).Namespace.ToLower()} damage"))
+                else if (text.ToLower().Equals($"{CommandName} damage"))
                 {
                     Traverse.Create(__instance).Method("AddString", new object[] { text }).GetValue();
 
@@ -404,12 +398,12 @@ namespace BuildPieceTweaks
                     {
                         output.Add(Enum.GetName(typeof(HitData.DamageModifier), type));
                     }
-                    Dbgl("\r\n" + string.Join("\r\n", output));
+                    log.LogDebug("\r\n" + string.Join("\r\n", output));
 
                     Traverse.Create(__instance).Method("AddString", new object[] { $"{context.Info.Metadata.Name} dumped damage modifiers" }).GetValue();
                     return false;
                 }
-                else if (text.ToLower().StartsWith($"{typeof(BepInExPlugin).Namespace.ToLower()} save "))
+                else if (text.ToLower().StartsWith($"{CommandName} save "))
                 {
                     var t = text.Split(' ');
                     string pieceName = t[t.Length - 1];
@@ -422,19 +416,19 @@ namespace BuildPieceTweaks
                     Traverse.Create(__instance).Method("AddString", new object[] { $"{context.Info.Metadata.Name} saved piece data to {pieceName}.json" }).GetValue();
                     return false;
                 }
-                else if (text.ToLower().StartsWith($"{typeof(BepInExPlugin).Namespace.ToLower()} dump "))
+                else if (text.ToLower().StartsWith($"{CommandName} dump "))
                 {
                     var t = text.Split(' ');
                     string pieceName = t[t.Length - 1];
                     PieceData pieceData = GetDataByName(pieceName);
                     if (pieceData == null)
                         return false;
-                    Dbgl("\r\n" + JsonUtility.ToJson(pieceData));
+                    log.LogDebug("\r\n" + JsonUtility.ToJson(pieceData));
                     Traverse.Create(__instance).Method("AddString", new object[] { text }).GetValue();
                     Traverse.Create(__instance).Method("AddString", new object[] { $"{context.Info.Metadata.Name} dumped {pieceName}" }).GetValue();
                     return false;
                 }
-                else if (text.ToLower().StartsWith($"{typeof(BepInExPlugin).Namespace.ToLower()}"))
+                else if (text.ToLower().StartsWith($"{CommandName}"))
                 {
                     string output = $"{context.Info.Metadata.Name} reset\r\n"
                     + $"{context.Info.Metadata.Name} reload\r\n"
