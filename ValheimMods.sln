@@ -15,7 +15,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TreeRespawn", "TreeRespawn\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CraftFromContainers", "CraftFromContainers\CraftFromContainers.csproj", "{571E7C29-571A-41F0-9D93-2161DD20C36A}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CustomTextures", "CustomTextures\CustomTextures.csproj", "{341D9492-226D-4381-9FDA-95DE6057033F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TextureCustomizer", "CustomTextures\TextureCustomizer.csproj", "{341D9492-226D-4381-9FDA-95DE6057033F}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DiscardInventoryItem", "DiscardInventoryItem\DiscardInventoryItem.csproj", "{B827CA6A-3604-4617-A2B5-86D49F049F60}"
 EndProject

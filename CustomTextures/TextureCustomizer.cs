@@ -1,5 +1,6 @@
 ﻿using BepInEx;
 using BepInEx.Configuration;
+using BepInEx.Logging;
 using HarmonyLib;
 using System;
 using System.Collections.Generic;
@@ -7,21 +8,19 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using UnityEngine;
-using Debug = UnityEngine.Debug;
 
-namespace CustomTextures
+namespace TextureCustomizer
 {
-    [BepInPlugin("aedenthorn.CustomTextures", "Custom Textures", "2.7.0")]
-    public partial class BepInExPlugin: BaseUnityPlugin
+    [BepInPlugin("thedefside.TextureCustomizer", "Texture Customizer", "0.0.1")]
+    public partial class TextureCustomizer: BaseUnityPlugin
     {
+        public static ManualLogSource log;
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<bool> dumpSceneTextures;
         public static ConfigEntry<bool> replaceLocationTextures;
         public static ConfigEntry<string> hotKey;
-        public static ConfigEntry<int> nexusID;
-
-        private static ConfigEntry<bool> isDebug;
-        private static BepInExPlugin context;
+        
+        private static TextureCustomizer context;
         private static Stopwatch stopwatch = new Stopwatch();
 
         public static bool dumpOutput = false;
@@ -33,21 +32,16 @@ namespace CustomTextures
         public static List<string> outputDump = new List<string>();
         public static List<string> logDump = new List<string>();
 
-        public static void Dbgl(string str = "", bool pref = true)
-        {
-            if (isDebug.Value)
-                Debug.Log((pref ? typeof(BepInExPlugin).Namespace + " " : "") + str);
-        }
+        
         private void Awake()
         {
             context = this;
+            log = Logger;
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
-            isDebug = Config.Bind<bool>("General", "IsDebug", false, "Enable debug");
             hotKey = Config.Bind<string>("General", "HotKey", "page down", "Key to reload textures");
             replaceLocationTextures = Config.Bind<bool>("General", "ReplaceLocationTextures", true, "Replace textures for special locations (can take a long time)");
             dumpSceneTextures = Config.Bind<bool>("General", "DumpSceneTextures", false, "Dump scene textures to BepInEx/plugins/CustomTextures/scene_dump.txt");
-            nexusID = Config.Bind<int>("General", "NexusID", 48, "Nexus mod ID for updates");
-
+            
             if (!modEnabled.Value)
                 return;
 
@@ -64,7 +58,7 @@ namespace CustomTextures
         {
             if (ZNetScene.instance != null && CheckKeyDown(hotKey.Value))
             {
-                Dbgl($"Pressed reload key.");
+                log.LogDebug($"Pressed reload key.");
 
                 ReloadTextures();
 
@@ -92,7 +86,7 @@ namespace CustomTextures
             string elapsedTime = String.Format("{0:00}:{1:00}:{2:00}.{3:00}",
                 ts.Hours, ts.Minutes, ts.Seconds,
                 ts.Milliseconds / 10);
-            Dbgl($"{str} RunTime " + elapsedTime);
+            log.LogDebug($"{str} RunTime " + elapsedTime);
         }
 
         private static bool HasCustomTexture(string id)
@@ -112,7 +106,7 @@ namespace CustomTextures
                 if (!modEnabled.Value)
                     return true;
                 string text = __instance.m_input.text;
-                if (text.ToLower().Equals($"{typeof(BepInExPlugin).Namespace.ToLower()} reset"))
+                if (text.ToLower().Equals($"{typeof(TextureCustomizer).Namespace.ToLower()} reset"))
                 {
                     context.Config.Reload();
                     context.Config.Save();

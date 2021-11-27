@@ -9,17 +9,17 @@ using System.Text.RegularExpressions;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-namespace CustomTextures
+namespace TextureCustomizer
 {
-    public partial class BepInExPlugin: BaseUnityPlugin
+    public partial class TextureCustomizer: BaseUnityPlugin
     {
         private static void LoadCustomTextures()
         {
-            string path = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location),"CustomTextures");
+            string path = Path.Combine(Paths.ConfigPath, typeof(TextureCustomizer).Namespace);
 
             if (!Directory.Exists(path))
             {
-                Dbgl($"Directory {path} does not exist! Creating.");
+                log.LogInfo($"Directory {path} does not exist! Creating.");
                 Directory.CreateDirectory(path);
                 return;
             }
@@ -39,7 +39,7 @@ namespace CustomTextures
                     texturesToLoad.Add(id);
                     layersToLoad.Add(Regex.Replace(id, @"_[^_]+\.", "."));
                     fileWriteTimes[id] = File.GetLastWriteTimeUtc(file);
-                    //Dbgl($"adding new {fileName} custom texture.");
+                    //log.LogDebug($"adding new {fileName} custom texture.");
                 }
                 
                 customTextures[id] = file;
@@ -54,13 +54,13 @@ namespace CustomTextures
 
             LoadCustomTextures();
 
-            //Dbgl($"textures to load \n\n{string.Join("\n", texturesToLoad)}");
+            //log.LogDebug($"textures to load \n\n{string.Join("\n", texturesToLoad)}");
 
             ReplaceObjectDBTextures();
 
             var zones = SceneManager.GetActiveScene().GetRootGameObjects().Where(go => go.name.StartsWith("_Zone"));
 
-            Dbgl($"Replacing textures for {zones.Count()} zones");
+            log.LogDebug($"Replacing textures for {zones.Count()} zones");
             foreach (var go in zones)
             {
                 ReplaceOneZoneTextures("_GameMain", go);
@@ -92,11 +92,11 @@ namespace CustomTextures
             }
 
             if (logDump.Any())
-                Dbgl("\n" + string.Join("\n", logDump));
+                log.LogDebug("\n" + string.Join("\n", logDump));
             if (dumpSceneTextures.Value)
             {
                 string path = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "CustomTextures", "scene_dump.txt");
-                Dbgl($"Writing {path}");
+                log.LogDebug($"Writing {path}");
                 File.WriteAllLines(path, outputDump);
             }
         }

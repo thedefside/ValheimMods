@@ -6,9 +6,9 @@ using System.Linq;
 using System.Reflection;
 using UnityEngine;
 
-namespace CustomTextures
+namespace TextureCustomizer
 {
-    public partial class BepInExPlugin : BaseUnityPlugin
+    public partial class TextureCustomizer : BaseUnityPlugin
     {
 
         private static void ReplaceObjectDBTextures()
@@ -22,12 +22,12 @@ namespace CustomTextures
                 if(go?.GetComponent<ItemDrop>()?.m_itemData?.m_shared?.m_icons.Length > 0)
                 {
                     vanilla = go.GetComponent<ItemDrop>().m_itemData.m_shared.m_icons[0].texture;
-                    Dbgl($"got atlass at item: {go.name}");
+                    log.LogDebug($"got atlass at item: {go.name}");
                     break;
                 }
             }
             Texture2D tex = LoadTexture("atlas_item_icons", vanilla, false, true, true);
-            Dbgl($"Replacing textures for {objectDB.m_items.Count} objects");
+            log.LogDebug($"Replacing textures for {objectDB.m_items.Count} objects");
             foreach (GameObject go in objectDB.m_items)
             {
                 ItemDrop item = go.GetComponent<ItemDrop>();
@@ -37,8 +37,8 @@ namespace CustomTextures
 
                 if (tex != null)
                 {
-                    //Dbgl($"sprite format {item.m_itemData.m_shared.m_icons[0].texture.format} {item.m_itemData.m_shared.m_icons[0].texture.graphicsFormat}");
-                    //Dbgl($"Loading inventory icons for {go.name}, {item.m_itemData.m_shared.m_icons.Length} icons...");
+                    //log.LogDebug($"sprite format {item.m_itemData.m_shared.m_icons[0].texture.format} {item.m_itemData.m_shared.m_icons[0].texture.graphicsFormat}");
+                    //log.LogDebug($"Loading inventory icons for {go.name}, {item.m_itemData.m_shared.m_icons.Length} icons...");
                     for (int i = 0; i < item.m_itemData.m_shared.m_icons.Length; i++)
                     {
                         Sprite sprite = item.m_itemData.m_shared.m_icons[i];
@@ -54,7 +54,7 @@ namespace CustomTextures
             Traverse.Create(objectDB).Method("UpdateItemHashes").GetValue();
 
             if (logDump.Any())
-                Dbgl("\n" + string.Join("\n", logDump));
+                log.LogDebug("\n" + string.Join("\n", logDump));
         }
 
         private static void ReplaceZNetSceneTextures()
@@ -103,7 +103,7 @@ namespace CustomTextures
                     gos.Add(go);
             }
 
-            Dbgl($"Checking {gos.Count} prefabs");
+            log.LogDebug($"Checking {gos.Count} prefabs");
 
             foreach (GameObject gameObject in gos)
             {
@@ -117,7 +117,7 @@ namespace CustomTextures
             ReplaceSkyBoxTexture();
 
             if (logDump.Any())
-                Dbgl("\n" + string.Join("\n", logDump));
+                log.LogDebug("\n" + string.Join("\n", logDump));
 
         }
 
@@ -126,7 +126,7 @@ namespace CustomTextures
             if (customTextures.ContainsKey("skybox_StarFieldTex"))
             {
                 Cubemap original = RenderSettings.skybox.GetTexture("_StarFieldTex") as Cubemap;
-                Dbgl($"original skybox {RenderSettings.skybox.GetTexture("_StarFieldTex").width}x{RenderSettings.skybox.GetTexture("_StarFieldTex").height} {RenderSettings.skybox.GetTexture("_StarFieldTex").graphicsFormat} {RenderSettings.skybox.GetTexture("_StarFieldTex").filterMode}");
+                log.LogDebug($"original skybox {RenderSettings.skybox.GetTexture("_StarFieldTex").width}x{RenderSettings.skybox.GetTexture("_StarFieldTex").height} {RenderSettings.skybox.GetTexture("_StarFieldTex").graphicsFormat} {RenderSettings.skybox.GetTexture("_StarFieldTex").filterMode}");
 
                 Cubemap cube = new Cubemap(original.width, TextureFormat.RGB24, false);
 
@@ -149,7 +149,7 @@ namespace CustomTextures
                     cube.Apply();
                 }
                 RenderSettings.skybox.SetTexture("_StarFieldTex", cube);
-                Dbgl($"set skybox texture");
+                log.LogDebug($"set skybox texture");
             }
             if (customTextures.ContainsKey("skybox_MoonTex"))
             {
@@ -157,13 +157,13 @@ namespace CustomTextures
                 var color = tex.GetPixels();
                 // For each side
                 RenderSettings.skybox.SetTexture("_MoonTex", tex);
-                Dbgl($"set moon texture");
+                log.LogDebug($"set moon texture");
             }
         }
         private static void ReplaceZoneSystemTextures(ZoneSystem __instance)
         {
 
-            Dbgl($"Reloading ZoneSystem textures {__instance.name} {__instance.m_zonePrefab.name}");
+            log.LogDebug($"Reloading ZoneSystem textures {__instance.name} {__instance.m_zonePrefab.name}");
 
             ReplaceOneZoneTextures(__instance.name, __instance.m_zonePrefab);
         }
@@ -202,7 +202,7 @@ namespace CustomTextures
                 if (gameObject.name == "_Locations")
                 {
                     Location[] locations = gameObject.GetComponentsInChildren<Location>(true);
-                    Dbgl($"Checking {locations.Length} locations");
+                    log.LogDebug($"Checking {locations.Length} locations");
                     foreach (Location location in locations)
                     {
                         if (!dumpSceneTextures.Value)
@@ -226,7 +226,7 @@ namespace CustomTextures
         private static void ReplaceHeightmapTextures()
         {
 
-            Dbgl($"Reloading Heightmap textures for {Heightmap.GetAllHeightmaps().Count} heightmaps");
+            log.LogDebug($"Reloading Heightmap textures for {Heightmap.GetAllHeightmaps().Count} heightmaps");
 
             ZoneSystem zoneSystem = (ZoneSystem)typeof(ZoneSystem).GetField("m_instance", BindingFlags.NonPublic | BindingFlags.Static).GetValue(null);
 
@@ -256,18 +256,18 @@ namespace CustomTextures
                 }
             }
             if (logDump.Any())
-                Dbgl("\n" + string.Join("\n", logDump));
+                log.LogDebug("\n" + string.Join("\n", logDump));
         }
         private static void ReplaceEnvironmentTextures()
         {
 
-            Dbgl($"Reloading Environment textures");
+            log.LogDebug($"Reloading Environment textures");
 
             GameObject env = GameObject.Find("_GameMain/environment");
             if (env != null)
             {
                 int count = env.transform.childCount;
-                Dbgl($"Reloading {count} Environment textures");
+                log.LogDebug($"Reloading {count} Environment textures");
 
                 logDump.Clear();
 
@@ -277,7 +277,7 @@ namespace CustomTextures
                     ReplaceOneGameObjectTextures(gameObject, gameObject.name, "environment");
                 }
                 if (logDump.Any())
-                    Dbgl("\n" + string.Join("\n", logDump));
+                    log.LogDebug("\n" + string.Join("\n", logDump));
             }
 
         }

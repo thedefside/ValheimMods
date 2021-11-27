@@ -5,9 +5,9 @@ using System.Linq;
 using System.Reflection;
 using UnityEngine;
 
-namespace CustomTextures
+namespace TextureCustomizer
 {
-    public partial class BepInExPlugin
+    public partial class TextureCustomizer
     {
 
         [HarmonyPatch(typeof(FejdStartup), "SetupObjectDB")]
@@ -20,7 +20,7 @@ namespace CustomTextures
                 stopwatch.Restart();
                 outputDump.Clear();
 
-                Dbgl($"SetupObjectDB postfix");
+                log.LogDebug($"SetupObjectDB postfix");
 
                 ReplaceObjectDBTextures();
                 LogStopwatch("SetupObjectDB");
@@ -44,7 +44,7 @@ namespace CustomTextures
         {
             static void Postfix(ZNetScene __instance, Dictionary<int, GameObject> ___m_namedPrefabs)
             {
-                Dbgl($"ZNetScene awake");
+                log.LogDebug($"ZNetScene awake");
 
                 stopwatch.Restart();
 
@@ -67,20 +67,20 @@ namespace CustomTextures
         {
             static void Postfix(ClutterSystem __instance)
             {
-                Dbgl($"Clutter system awake");
+                log.LogDebug($"Clutter system awake");
 
                 stopwatch.Restart();
 
                 logDump.Clear();
 
-                Dbgl($"Checking {__instance.m_clutter.Count} clutters");
+                log.LogDebug($"Checking {__instance.m_clutter.Count} clutters");
                 foreach (ClutterSystem.Clutter clutter in __instance.m_clutter)
                 {
                     ReplaceOneGameObjectTextures(clutter.m_prefab, clutter.m_prefab.name, "object");
                 }
 
                 if (logDump.Any())
-                    Dbgl("\n" + string.Join("\n", logDump));
+                    log.LogDebug("\n" + string.Join("\n", logDump));
 
                 LogStopwatch("Clutter System");
 
@@ -94,7 +94,7 @@ namespace CustomTextures
             {
                 if (replaceLocationTextures.Value)
                 {
-                    Dbgl($"Starting ZoneSystem Location prefab replacement");
+                    log.LogDebug($"Starting ZoneSystem Location prefab replacement");
                     stopwatch.Restart();
 
                     ReplaceLocationTextures();
@@ -104,7 +104,7 @@ namespace CustomTextures
                 if (ZNetScene.instance && dumpSceneTextures.Value)
                 {
                     string path = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "CustomTextures", "scene_dump.txt");
-                    Dbgl($"Writing {path}");
+                    log.LogDebug($"Writing {path}");
                     File.WriteAllLines(path, outputDump);
                     dumpSceneTextures.Value = false;
                 }
@@ -123,7 +123,7 @@ namespace CustomTextures
                         if (ShouldLoadCustomTexture($"player_model_{i}{property}"))
                         {
                             __instance.m_models[i].m_baseMaterial.SetTexture(property, LoadTexture($"player_model_{i}{property}", __instance.m_models[i].m_baseMaterial.GetTexture(property), false));
-                            Dbgl($"set player_model_{i}_texture custom texture.");
+                            log.LogDebug($"set player_model_{i}_texture custom texture.");
                         }
                         else if (property == "_MainTex" && ShouldLoadCustomTexture($"player_model_{i}_texture")) // legacy
                         {

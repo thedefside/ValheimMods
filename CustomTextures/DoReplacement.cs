@@ -7,9 +7,9 @@ using System.Linq;
 using System.Reflection;
 using UnityEngine;
 
-namespace CustomTextures
+namespace TextureCustomizer
 {
-    public partial class BepInExPlugin : BaseUnityPlugin
+    public partial class TextureCustomizer : BaseUnityPlugin
     {
         private static void ReplaceOneGameObjectTextures(GameObject gameObject, string thingName, string prefix)
         {
@@ -21,7 +21,7 @@ namespace CustomTextures
             }
             //stopwatch.Restart();
 
-            //Dbgl($"loading textures for { gameObject.name}");
+            //log.LogDebug($"loading textures for { gameObject.name}");
             MeshRenderer[] mrs = gameObject.GetComponentsInChildren<MeshRenderer>(true);
             SkinnedMeshRenderer[] smrs = gameObject.GetComponentsInChildren<SkinnedMeshRenderer>(true);
             InstanceRenderer[] irs = gameObject.GetComponentsInChildren<InstanceRenderer>(true);
@@ -389,7 +389,7 @@ namespace CustomTextures
             }
             else if (vanilla != null)
             {
-                Dbgl($"texture {id} has no custom texture, using vanilla");
+                log.LogDebug($"texture {id} has no custom texture, using vanilla");
 
                 // https://support.unity.com/hc/en-us/articles/206486626-How-can-I-get-pixels-from-unreadable-textures-
 
@@ -430,7 +430,7 @@ namespace CustomTextures
             }
             if (layers.Count() > 0)
             {
-                Dbgl($"texture {id} has {layers.Count()} layers");
+                log.LogDebug($"texture {id} has {layers.Count()} layers");
                 foreach (var layer in layers.Skip(vanilla == null && !customTextures.ContainsKey(id) ? 1 : 0))
                 {
 
@@ -539,12 +539,12 @@ namespace CustomTextures
                             }
                         }
                     }
-                    //Dbgl(string.Join("\n", coordsl));
+                    //log.LogDebug(string.Join("\n", coordsl));
                     texture.Apply();
                 }
                 if (false)
                 {
-                    //Dbgl($"tex {tex.width},{tex.height}");
+                    //log.LogDebug($"tex {tex.width},{tex.height}");
                     //byte[] bytes = ImageConversion.EncodeToPNG(tex);
                     //string path = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), id + "_test.png");
                     //File.WriteAllBytes(path, bytes);

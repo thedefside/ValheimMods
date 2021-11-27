@@ -3,4 +3,7 @@
     <Version>1.0.0</Version>
   </PropertyGroup>
   <Import Project="$(SolutionDir)\valheim.targets" />
+  <ItemGroup>
+    <None Remove="Package\RecipeCustomizer.zip" />
+  </ItemGroup>
 </Project>

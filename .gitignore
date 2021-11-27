@@ -346,3 +346,7 @@ healthchecksdb
 /BuildPieceTweaks/Package/BuildPieceCustomizer.dll
 /BuildPieceTweaks/Package/BuildPieceCustomizer.zip
 /BuildPieceTweaks/Package/Package.zip
+/CustomTextures/Package/CustomTextures.dll
+/CustomTextures/Package/CustomTextures.zip
+/CustomTextures/Package/Package.zip
+/CustomTextures/Package/TextureCustomizer.dll
