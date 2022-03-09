@@ -10,7 +10,7 @@ using UnityEngine;
 
 namespace MapPinExport
 {
-    [BepInPlugin("aedenthorn.MapPinExport", "Map Pin Export", "0.1.0")]
+    [BepInPlugin("aedenthorn.MapPinExport", "Map Pin Export", "0.2.1")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         public static ConfigEntry<bool> isDebug;
@@ -50,7 +50,18 @@ namespace MapPinExport
                 {
                     string file = text.Length > $"{typeof(BepInExPlugin).Namespace.ToLower()} export ".Length ? text.Substring($"{typeof(BepInExPlugin).Namespace.ToLower()} export ".Length) + ".txt" : "pindump.txt";
 
-                    var pinList = (List<Minimap.PinData>)AccessTools.DeclaredField(typeof(Minimap), "m_pins").GetValue(Minimap.instance);
+                    var pinList = new List<Minimap.PinData>((List<Minimap.PinData>)AccessTools.DeclaredField(typeof(Minimap), "m_pins").GetValue(Minimap.instance));
+                    if (text.StartsWith($"{typeof(BepInExPlugin).Namespace.ToLower()} export ") && int.TryParse(text.Split(' ')[2], out int radius))
+                    {
+                        pinList = pinList.Where(p => Vector3.Distance(Player.m_localPlayer.transform.position, p.m_pos) <= radius).ToList();
+                    }
+
+                    pinList.Sort(delegate (Minimap.PinData x, Minimap.PinData y)
+                    {
+                        return Vector2.Distance(new Vector2(-100000, -100000), new Vector2(x.m_pos.x, x.m_pos.z)).CompareTo(Vector2.Distance(new Vector2(-100000, -100000), new Vector2(y.m_pos.x, y.m_pos.z)));
+                    });
+
+
                     List<string> output = new List<string>();
                     foreach(var pin in pinList)
                     {
