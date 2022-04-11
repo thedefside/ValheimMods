@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace HoeRadius
 {
-    [BepInPlugin("aedenthorn.HoeRadius", "Hoe Radius", "0.1.1")]
+    [BepInPlugin("aedenthorn.HoeRadius", "Hoe Radius", "0.1.2")]
     public class BepInExPlugin : BaseUnityPlugin
     {
 
@@ -53,7 +53,7 @@ namespace HoeRadius
         }
         private void Update()
         {
-            if (!modEnabled.Value || !Player.m_localPlayer || !Player.m_localPlayer.InPlaceMode() || Hud.IsPieceSelectionVisible())
+            if (false && !modEnabled.Value || !Player.m_localPlayer || !Player.m_localPlayer.InPlaceMode() || Hud.IsPieceSelectionVisible())
             {
                 if(lastOriginalRadius != 0)
                 {

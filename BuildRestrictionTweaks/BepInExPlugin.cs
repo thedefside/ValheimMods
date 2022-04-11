@@ -1,15 +1,12 @@
 ﻿using BepInEx;
-using BepInEx.Bootstrap;
 using BepInEx.Configuration;
 using HarmonyLib;
-using System;
-using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
 
 namespace BuildRestrictionTweaks
 {
-    [BepInPlugin("aedenthorn.BuildRestrictionTweaks", "Build Restriction Tweaks", "0.1.0")]
+    [BepInPlugin("aedenthorn.BuildRestrictionTweaks", "Build Restriction Tweaks", "0.2.1")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private enum PlacementStatus
@@ -39,12 +36,13 @@ namespace BuildRestrictionTweaks
         public static ConfigEntry<bool> ignoreSpaceRestrictions;
         public static ConfigEntry<bool> ignoreTeleportAreaRestrictions;
         public static ConfigEntry<bool> ignoreMissingStation;
+        public static ConfigEntry<bool> ignoreMissingStationExtension;
         public static ConfigEntry<bool> ignoreBiomeRestrictions;
         public static ConfigEntry<bool> ignoreCultivationRestrictions;
         public static ConfigEntry<bool> ignoreDungeonRestrictions;
 
         private static BepInExPlugin context;
-        
+        public static GameObject craftingStationObject;
         public static void Dbgl(string str = "", bool pref = true)
         {
             if (isDebug)
@@ -62,6 +60,7 @@ namespace BuildRestrictionTweaks
             ignoreBuildZone = Config.Bind<bool>("Options", "IgnoreInvalid", false, "Ignore zone restrictions.");
             ignoreSpaceRestrictions = Config.Bind<bool>("Options", "ignoreSpaceRestrictions", false, "Ignore space restrictions.");
             ignoreTeleportAreaRestrictions = Config.Bind<bool>("Options", "ignoreTeleportAreaRestrictions", false, "Ignore teleport area restrictions.");
+            ignoreMissingStationExtension = Config.Bind<bool>("Options", "ignoreMissingStationExtension", false, "Ignore missing station extension.");
             ignoreMissingStation = Config.Bind<bool>("Options", "ignoreMissingStation", false, "Ignore missing station.");
             ignoreBiomeRestrictions = Config.Bind<bool>("Options", "ignoreBiomeRestrictions", false, "Ignore biome restrictions.");
             ignoreCultivationRestrictions = Config.Bind<bool>("Options", "ignoreCultivationRestrictions", false, "Ignore need for cultivated ground.");
@@ -74,6 +73,23 @@ namespace BuildRestrictionTweaks
 
         }
 
+        [HarmonyPatch(typeof(CraftingStation), "HaveBuildStationInRange")]
+        static class CraftingStation_HaveBuildStationInRange_Patch
+        {
+            static void Postfix(ref CraftingStation __result, string name)
+            {
+                if (!modEnabled.Value || (!ignoreMissingStation.Value && !alwaysValid.Value) || __result != null)
+                    return;
+                if (craftingStationObject)
+                    __result = craftingStationObject.GetComponent<CraftingStation>();
+                else
+                {
+                    craftingStationObject = new GameObject();
+                    DontDestroyOnLoad(craftingStationObject);
+                    __result = craftingStationObject.AddComponent<CraftingStation>();
+                }
+            }
+        }
         [HarmonyPatch(typeof(Player), "UpdatePlacementGhost")]
         static class Player_UpdatePlacementGhost_Patch
         {
@@ -91,7 +107,8 @@ namespace BuildRestrictionTweaks
                     || (placementStatus == PlacementStatus.NoBuildZone && ignoreBuildZone.Value)
                     || (placementStatus == PlacementStatus.MoreSpace && ignoreSpaceRestrictions.Value)
                     || (placementStatus == PlacementStatus.NoTeleportArea && ignoreTeleportAreaRestrictions.Value)
-                    || (placementStatus == PlacementStatus.ExtensionMissingStation && ignoreBiomeRestrictions.Value)
+                    || (placementStatus == PlacementStatus.ExtensionMissingStation && ignoreMissingStationExtension.Value)
+                    || (placementStatus == PlacementStatus.WrongBiome && ignoreBiomeRestrictions.Value)
                     || (placementStatus == PlacementStatus.NeedCultivated && ignoreCultivationRestrictions.Value)
                     || (placementStatus == PlacementStatus.NotInDungeon && ignoreDungeonRestrictions.Value)
                 )

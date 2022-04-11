@@ -11,7 +11,7 @@ using UnityEngine;
 
 namespace DeathTweaks
 {
-    [BepInPlugin("aedenthorn.DeathTweaks", "Death Tweaks", "0.8.1")]
+    [BepInPlugin("aedenthorn.DeathTweaks", "Death Tweaks", "0.9.1")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         public static ConfigEntry<bool> modEnabled;
@@ -40,6 +40,10 @@ namespace DeathTweaks
         public static ConfigEntry<string> dropItemTypes;
         public static ConfigEntry<string> destroyItemTypes;
 
+        public static ConfigEntry<string> keepItemNames;
+        public static ConfigEntry<string> dropItemNames;
+        public static ConfigEntry<string> destroyItemNames;
+
         private static BepInExPlugin context;
         private static List<string> typeEnums = new List<string>();
 
@@ -64,6 +68,11 @@ namespace DeathTweaks
             keepItemTypes = Config.Bind<string>("ItemLists", "KeepItemTypes", "", $"List of items to keep (comma-separated). Leave empty if using DropItemTypes. Valid types: {string.Join(",", typeEnums)}");
             dropItemTypes = Config.Bind<string>("ItemLists", "DropItemTypes", "", $"List of items to drop (comma-separated). Leave empty if using KeepItemTypes. Valid types: {string.Join(",", typeEnums)}");
             destroyItemTypes = Config.Bind<string>("ItemLists", "DestroyItemTypes", "", $"List of items to destroy (comma-separated). Overrides other lists. Valid types: {string.Join(",", typeEnums)}");
+
+            keepItemNames = Config.Bind<string>("ItemLists", "KeepItems", "", $"List of items to keep (comma-separated). Use Item names, for example: Iron,IronScrap,BronzeOre");
+            dropItemNames = Config.Bind<string>("ItemLists", "DropItems", "", $"List of items to drop (comma-separated). Use Item names, for example: Iron,IronScrap,BronzeOre");
+            destroyItemNames = Config.Bind<string>("ItemLists", "DestroyItems", "", $"List of items to destroy (comma-separated). Overrides other lists. Use Item names, for example: Iron,IronScrap,BronzeOre");
+
             keepAllItems = Config.Bind<bool>("Toggles", "KeepAllItems", false, "Overrides all other item options if true.");
             destroyAllItems = Config.Bind<bool>("Toggles", "DestroyAllItems", false, "Overrides all other item options except KeepAllItems if true.");
             keepEquippedItems = Config.Bind<bool>("Toggles", "KeepEquippedItems", false, "Overrides item lists if true.");
@@ -165,6 +174,16 @@ namespace DeathTweaks
                                         continue;
                                     }
                                 }
+                                if (destroyItemNames.Value.Length > 0)
+                                {
+                                    string[] destroyTypes = destroyItemNames.Value.Split(',');
+                                    if (destroyTypes.Contains(item.m_dropPrefab.name))
+                                    {
+                                        keepItems.RemoveAt(j);
+                                        continue;
+                                    }
+                                }
+
 
                                 if (keepItemTypes.Value.Length > 0)
                                 {
@@ -172,10 +191,28 @@ namespace DeathTweaks
                                     if (keepTypes.Contains(Enum.GetName(typeof(ItemDrop.ItemData.ItemType), item.m_shared.m_itemType)))
                                         continue;
                                 }
+                                else if (keepItemNames.Value.Length > 0)
+                                {
+                                    string[] keepTypes = keepItemTypes.Value.Split(',');
+                                    if (keepTypes.Contains(item.m_dropPrefab.name))
+                                        continue;
+                                }
+
+
                                 else if (dropItemTypes.Value.Length > 0)
                                 {
                                     string[] dropTypes = dropItemTypes.Value.Split(',');
                                     if (dropTypes.Contains(Enum.GetName(typeof(ItemDrop.ItemData.ItemType), item.m_shared.m_itemType)))
+                                    {
+                                        dropItems.Add(item);
+                                        keepItems.RemoveAt(j);
+                                    }
+                                    continue;
+                                }
+                                else if (dropItemNames.Value.Length > 0)
+                                {
+                                    string[] dropTypes = dropItemNames.Value.Split(',');
+                                    if (dropTypes.Contains(item.m_dropPrefab.name))
                                     {
                                         dropItems.Add(item);
                                         keepItems.RemoveAt(j);
@@ -227,7 +264,7 @@ namespace DeathTweaks
 
                 if (hardDeath && reduceSkills.Value)
                 {
-                    ___m_skills.OnDeath();
+                    ___m_skills.LowerAllSkills(skillReduceFactor.Value);
                 }
                 ___m_seman.RemoveAllStatusEffects(false);
                 Game.instance.RequestRespawn(10f);
@@ -256,58 +293,6 @@ namespace DeathTweaks
                 if (!modEnabled.Value || !noSkillProtection.Value)
                     return true;
                 __result = true;
-                return false;
-            }
-        }
-
-        [HarmonyPatch(typeof(Skills), "LowerAllSkills")]
-        static class LowerAllSkills_Patch
-        {
-            static bool Prefix(float factor, Dictionary<Skills.SkillType, Skills.Skill> ___m_skillData, Player ___m_player)
-            {
-                if (!modEnabled.Value)
-                    return true;
-
-                factor = skillReduceFactor.Value;
-
-                foreach (KeyValuePair<Skills.SkillType, Skills.Skill> keyValuePair in ___m_skillData)
-                {
-                    float level = keyValuePair.Value.m_level;
-                    float accum = keyValuePair.Value.m_accumulator;
-                    float total = 0;
-                    keyValuePair.Value.m_level = 0;
-                    var nextLevelReq = typeof(Skills.Skill).GetMethod("GetNextLevelRequirement", BindingFlags.NonPublic | BindingFlags.Instance);
-                    for (int i = 0; i < level; i++)
-                    {
-                        total += (float)nextLevelReq.Invoke(keyValuePair.Value, new object[] { });
-                        keyValuePair.Value.m_level += 1;
-                    }
-                    total += accum;
-
-                    //Dbgl($"skill {keyValuePair.Key} total xp {total}, level {level}, next level: {accum} / {nextLevelReq.Invoke(keyValuePair.Value, new object[] { })}");
-
-                    total *= (1 - skillReduceFactor.Value);
-
-                    float newTotal = 0;
-                    keyValuePair.Value.m_level = 0;
-                    while(true)
-                    {
-                        float add = (float)nextLevelReq.Invoke(keyValuePair.Value, new object[] { });
-                        //Dbgl($"xp at level {keyValuePair.Value.m_level}: {newTotal}, xp to level {keyValuePair.Value.m_level + 1}: add");
-                        if(newTotal + add <= total)
-                        {
-                            newTotal += add;
-                            keyValuePair.Value.m_level += 1;
-                        }
-                        else
-                        {
-                            keyValuePair.Value.m_accumulator = total - newTotal;
-                            break;
-                        }
-                    }
-                    //Dbgl($"skill {keyValuePair.Key} new total xp {total}, level {keyValuePair.Value.m_level}, next level: {keyValuePair.Value.m_accumulator} / {nextLevelReq.Invoke(keyValuePair.Value, new object[] { })}");
-                }
-                ___m_player.Message(MessageHud.MessageType.TopLeft, "$msg_skills_lowered", 0, null);
                 return false;
             }
         }

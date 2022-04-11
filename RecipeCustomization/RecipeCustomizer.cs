@@ -323,22 +323,22 @@ namespace RecipeCustomizer
                 {
                     context.Config.Reload();
                     context.Config.Save();
-                    AccessTools.Method(typeof(Terminal), "AddString").Invoke(__instance, new object[] { text });
-                    AccessTools.Method(typeof(Terminal), "AddString").Invoke(__instance, new object[] { $"{context.Info.Metadata.Name} config reloaded" });
+                    __instance.AddString( text );
+                    __instance.AddString( $"{context.Info.Metadata.Name} config reloaded" );
                     return false;
                 }
                 else if (text.ToLower().Equals($"{CommandName} reload"))
                 {
                     GetRecipeDataFromFiles();
-                    AccessTools.Method(typeof(Terminal), "AddString").Invoke(__instance, new object[] { text });
+                    __instance.AddString( text );
                     if (ObjectDB.instance)
                     {
                         LoadAllRecipeData(true);
-                        AccessTools.Method(typeof(Terminal), "AddString").Invoke(__instance, new object[] { $"{context.Info.Metadata.Name} reloaded recipes from files" });
+                        __instance.AddString( $"{context.Info.Metadata.Name} reloaded recipes from files" );
                     }
                     else
                     {
-                        AccessTools.Method(typeof(Terminal), "AddString").Invoke(__instance, new object[] { $"{context.Info.Metadata.Name} reloaded recipes from files" });
+                        __instance.AddString( $"{context.Info.Metadata.Name} reloaded recipes from files" );
                     }
                     return false;
                 }
@@ -351,8 +351,8 @@ namespace RecipeCustomizer
                         return false;
                     CheckModFolder();
                     File.WriteAllText(Path.Combine(assetPath, recipData.name + ".json"), JsonUtility.ToJson(recipData));
-                    AccessTools.Method(typeof(Terminal), "AddString").Invoke(__instance, new object[] { text });
-                    AccessTools.Method(typeof(Terminal), "AddString").Invoke(__instance, new object[] { $"{context.Info.Metadata.Name} saved recipe data to {file}.json" });
+                    __instance.AddString( text );
+                    __instance.AddString( $"{context.Info.Metadata.Name} saved recipe data to {file}.json" );
                     return false;
                 }
                 else if (text.ToLower().StartsWith($"{CommandName} dump "))
@@ -363,8 +363,8 @@ namespace RecipeCustomizer
                     if (recipeData == null)
                         return false;
                     log.LogDebug($"Recipe data: {JsonUtility.ToJson(recipeData)}");
-                    AccessTools.Method(typeof(Terminal), "AddString").Invoke(__instance, new object[] { text });
-                    AccessTools.Method(typeof(Terminal), "AddString").Invoke(__instance, new object[] { $"{context.Info.Metadata.Name} dumped {recipe}" });
+                    __instance.AddString( text );
+                    __instance.AddString( $"{context.Info.Metadata.Name} dumped {recipe}" );
                     return false;
                 }
                 else if (text.ToLower().StartsWith($"{CommandName}"))
@@ -374,8 +374,8 @@ namespace RecipeCustomizer
                     + $"{context.Info.Metadata.Name} dump <ItemName>\r\n"
                     + $"{context.Info.Metadata.Name} save <ItemName>";
 
-                    AccessTools.Method(typeof(Terminal), "AddString").Invoke(__instance, new object[] { text });
-                    AccessTools.Method(typeof(Terminal), "AddString").Invoke(__instance, new object[] { output });
+                    __instance.AddString( text );
+                    __instance.AddString( output );
                     return false;
                 }
                 return true;

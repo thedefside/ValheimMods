@@ -22,7 +22,7 @@ namespace TextureCustomizer
                 if(go?.GetComponent<ItemDrop>()?.m_itemData?.m_shared?.m_icons.Length > 0)
                 {
                     vanilla = go.GetComponent<ItemDrop>().m_itemData.m_shared.m_icons[0].texture;
-                    log.LogDebug($"got atlass at item: {go.name}");
+                    log.LogDebug($"got atlas at item: {go.name}");
                     break;
                 }
             }
