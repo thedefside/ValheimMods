@@ -3,6 +3,7 @@ using BepInEx.Bootstrap;
 using BepInEx.Configuration;
 using BepInEx.Logging;
 using HarmonyLib;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
@@ -16,7 +17,7 @@ namespace RecipeCustomizer
     {
         private static RecipeCustomizer context;
         internal static ManualLogSource log;
-        internal const string CommandName = "rc";
+        internal const string CommandName = "recipec";
 
         public static ConfigEntry<bool> modEnabled;
         
@@ -97,41 +98,50 @@ namespace RecipeCustomizer
 
         private static void SetRecipeData(RecipeData data)
         {
-            GameObject go = ObjectDB.instance.GetItemPrefab(data.name);
-            if (go == null)
+            
+            try
             {
-                SetPieceRecipeData(data);
-                return;
-            }
-            if (go.GetComponent<ItemDrop>() == null)
-            {
-                log.LogWarning($"Item data for {data.name} not found!");
-                return;
-            }
-
-            for (int i = ObjectDB.instance.m_recipes.Count - 1; i > 0; i--)
-            {
-                if (ObjectDB.instance.m_recipes[i].m_item?.m_itemData.m_shared.m_name == go.GetComponent<ItemDrop>().m_itemData.m_shared.m_name)
+                GameObject go = ObjectDB.instance.GetItemPrefab(data.name);
+                if (go == null)
                 {
-                    if (data.disabled)
-                    {
-                        log.LogDebug($"Removing recipe for {data.name} from the game");
-                        ObjectDB.instance.m_recipes.RemoveAt(i);
-                        return;
-                    }
-
-                    ObjectDB.instance.m_recipes[i].m_amount = data.amount;
-                    ObjectDB.instance.m_recipes[i].m_minStationLevel = data.minStationLevel;
-                    ObjectDB.instance.m_recipes[i].m_craftingStation = GetCraftingStation(data.craftingStation);
-                    List<Piece.Requirement> reqs = new List<Piece.Requirement>();
-                    foreach (string req in data.reqs)
-                    {
-                        string[] parts = req.Split(':');
-                        reqs.Add(new Piece.Requirement() { m_resItem = ObjectDB.instance.GetItemPrefab(parts[0]).GetComponent<ItemDrop>(), m_amount = int.Parse(parts[1]), m_amountPerLevel = int.Parse(parts[2]), m_recover = parts[3].ToLower() == "true" });
-                    }
-                    ObjectDB.instance.m_recipes[i].m_resources = reqs.ToArray();
+                    SetPieceRecipeData(data);
                     return;
                 }
+                if (go.GetComponent<ItemDrop>() == null)
+                {
+                    log.LogWarning($"Item data for {data.name} not found!");
+                    return;
+                }
+
+                for (int i = ObjectDB.instance.m_recipes.Count - 1; i > 0; i--)
+                {
+                    if (ObjectDB.instance.m_recipes[i].m_item?.m_itemData.m_shared.m_name == go.GetComponent<ItemDrop>().m_itemData.m_shared.m_name)
+                    {
+                        if (data.disabled)
+                        {
+                            log.LogDebug($"Removing recipe for {data.name} from the game");
+                            ObjectDB.instance.m_recipes.RemoveAt(i);
+                            return;
+                        }
+
+                        ObjectDB.instance.m_recipes[i].m_amount = data.amount;
+                        ObjectDB.instance.m_recipes[i].m_minStationLevel = data.minStationLevel;
+                        ObjectDB.instance.m_recipes[i].m_craftingStation = GetCraftingStation(data.craftingStation);
+                        List<Piece.Requirement> reqs = new List<Piece.Requirement>();
+                        foreach (string req in data.reqs)
+                        {
+                            string[] parts = req.Split(':');
+                            reqs.Add(new Piece.Requirement() { m_resItem = ObjectDB.instance.GetItemPrefab(parts[0]).GetComponent<ItemDrop>(), m_amount = int.Parse(parts[1]), m_amountPerLevel = int.Parse(parts[2]), m_recover = parts[3].ToLower() == "true" });
+                        }
+                        ObjectDB.instance.m_recipes[i].m_resources = reqs.ToArray();
+                        return;
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                log.LogError($"Updating recipe for <{data.name}> failed:" + e.Message + e.StackTrace);
+                
             }
         }
 

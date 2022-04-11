@@ -387,7 +387,7 @@ namespace WeaponCustomizer
                     WeaponData weaponData = GetWeaponDataByName(weapon);
                     if (weaponData == null)
                         return false;
-                    log.LogDebug($"Weapon data = {JsonUtility.ToJson(weaponData)}");
+                    log.LogInfo($"Weapon data = {JsonUtility.ToJson(weaponData)}");
                     Traverse.Create(__instance).Method("AddString", new object[] { text }).GetValue();
                     Traverse.Create(__instance).Method("AddString", new object[] { $"{context.Info.Metadata.Name} dumped {weapon}" }).GetValue();
                     return false;
@@ -401,7 +401,7 @@ namespace WeaponCustomizer
                     {
                         output.Add(Enum.GetName(typeof(Skills.SkillType), type) + " " + (int)type);
                     }
-                    log.LogDebug(string.Join("\r\n", output));
+                    log.LogInfo(string.Join("\r\n", output));
 
                     Traverse.Create(__instance).Method("AddString", new object[] { $"{context.Info.Metadata.Name} dumped skill types" }).GetValue();
                     return false;
@@ -410,7 +410,7 @@ namespace WeaponCustomizer
                 {
                     Traverse.Create(__instance).Method("AddString", new object[] { text }).GetValue();
                     
-                    log.LogDebug(string.Join("\r\n", ObjectDB.instance.m_StatusEffects.Select(se => se.name)));
+                    log.LogInfo(string.Join("\r\n", ObjectDB.instance.m_StatusEffects.Select(se => se.name)));
 
                     Traverse.Create(__instance).Method("AddString", new object[] { $"{context.Info.Metadata.Name} dumped status effects" }).GetValue();
                     return false;
