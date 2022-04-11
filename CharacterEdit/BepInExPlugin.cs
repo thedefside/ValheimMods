@@ -22,6 +22,10 @@ namespace CharacterEdit
         public static ConfigEntry<string> gamePadButton;
         public static ConfigEntry<string> gamePadButtonHint;
         public static ConfigEntry<int> nexusID;
+        public static ConfigEntry<bool> enableCustomHairColor;
+        public static ConfigEntry<float> hairColorR;
+        public static ConfigEntry<float> hairColorG;
+        public static ConfigEntry<float> hairColorB;
         private static Transform title;
 
         public static void Dbgl(string str = "", bool pref = true)
@@ -38,6 +42,10 @@ namespace CharacterEdit
             gamePadButton = Config.Bind<string>("General", "GamePadButton", "JoyLTrigger", "Gamepad button used to press button. Possible values: JoyHide, JoyGPower, JoyRun, JoyCrouch, JoyMap, JoyMenu, JoyBlock, JoyAttack, JoySecondAttack, JoyAltPlace, JoyRotate, JoyPlace, JoyRemove, JoyTabLeft, JoyTabRight, JoyLStickLeft, JoyLStickRight, JoyLStickUp, JoyLStickDown, JoyDPadLeft, JoyDPadRight, JoyDPadUp, JoyDPadDown, JoyLTrigger, JoyRTrigger, JoyLStick, JoyRStick");
             gamePadButtonHint = Config.Bind<string>("General", "GamePadButtonHint", "LT", "Hint to show for gamepad button");
             nexusID = Config.Bind<int>("General", "NexusID", 650, "Nexus mod ID for updates");
+            enableCustomHairColor = Config.Bind("Hair Color", "EnableCustomHairColor", false, "Use the below values for setting edited character's hair color");
+            hairColorR = Config.Bind("Hair Color", "HairColorR", 1.0f, "How much red on a scale from 0-1. Greater than 1 will result in a glow.");
+            hairColorG = Config.Bind("Hair Color", "HairColorG", 1.0f, "How much green on a scale from 0-1. Greater than 1 will result in a glow.");
+            hairColorB = Config.Bind("Hair Color", "HairColorB", 1.0f, "How much blue on a scale from 0-1. Greater than 1 will result in a glow.");
 
 
             if (!modEnabled.Value)
@@ -99,6 +107,7 @@ namespace CharacterEdit
 
                 PlayerProfile playerProfile = Traverse.Create(FejdStartup.instance).Field("m_profiles").GetValue<List<PlayerProfile>>()[Traverse.Create(FejdStartup.instance).Field("m_profileIndex").GetValue<int>()];
                 Player currentPlayerInstance = Traverse.Create(FejdStartup.instance).Field("m_playerInstance").GetValue<GameObject>().GetComponent<Player>();
+                if (enableCustomHairColor.Value) currentPlayerInstance.SetHairColor(new Vector3(hairColorR.Value, hairColorG.Value, hairColorB.Value));
                 playerProfile.SavePlayerData(currentPlayerInstance);
                 playerProfile.SetName(text);
 
@@ -118,7 +127,7 @@ namespace CharacterEdit
 
                     fileNameRef.SetValue(text2);
                 }
-
+                
                 playerProfile.Save();
 
                 __instance.m_selectCharacterPanel.SetActive(true);
